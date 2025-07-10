@@ -1,0 +1,17 @@
+{
+  "name": "serial number",
+  "id": "1525005994281946189",
+  "api": "1.0.0",
+  "main": "code.tsx",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "documentAccess": "dynamic-page",
+  "editorType": [
+    "figjam"
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ]
+  }
+}
