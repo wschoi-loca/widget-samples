@@ -32,19 +32,16 @@ const SpawnedCircle = ({ number }: { number: number }) => (
 );
 
 function SuperNumberWidget() {
-  // 위젯의 기본 숫자를 상태로 관리
   const [number, setNumber] = useSyncedState('number', 1);
   const widgetId = useWidgetNodeId();
 
-  // 기능 2, 6: 숫자 변경 (-/+) 및 다중 선택 객체 숫자 변경
   const handleNumberChange = async (amount: number) => {
     const selection = figma.currentPage.selection;
     const filteredSelection = selection.filter(node => node.name === SPAWNED_NODE_NAME);
 
     if (filteredSelection.length > 0) {
-      // 다중 선택된 도형이 있을 경우
       await Promise.all(
-        filteredSelection.map(async node => {
+        filteredSelection.map(async (node) => {
           const textNode = (node as FrameNode).findOne(n => n.name === 'number_text') as TextNode;
           if (textNode) {
             const currentNum = parseInt(textNode.characters) || 0;
@@ -55,16 +52,14 @@ function SuperNumberWidget() {
         })
       );
     } else {
-      // 선택된 도형이 없으면 위젯의 숫자 변경
       setNumber(number + amount);
     }
   };
 
-  // 기능 3, 4: 도형 생성 (spawn 버튼 및 숫자 클릭)
   const spawnShape = async () => {
     const widgetNode = figma.getNodeById(widgetId);
     if (widgetNode) {
-      const x = widgetNode.x + widgetNode.width + 50; // 위젯 오른쪽에 생성
+      const x = widgetNode.x + widgetNode.width + 50;
       const y = widgetNode.y;
       const newNode = await figma.createNodeFromJSXAsync(<SpawnedCircle number={number} />);
       newNode.x = x;
@@ -73,19 +68,23 @@ function SuperNumberWidget() {
     }
   };
 
-  // 기능 5: 자동 넘버링 (serial 버튼)
+  // ⭐️ 자동 넘버링 기능 (수정된 부분)
   const runSerialNumbering = async () => {
     const selection = figma.currentPage.selection;
     let filteredSelection = selection.filter(node => node.name === SPAWNED_NODE_NAME);
 
     if (filteredSelection.length === 0) return;
 
-    // X축 -> Y축 순서로 정렬
+    // '왼쪽 상단' 기준으로 정렬
+    // 1. Y축(상하) 기준으로 먼저 정렬합니다.
+    // 2. Y축 값이 같다면, X축(좌우) 기준으로 정렬합니다.
     filteredSelection.sort((a, b) => {
-      if (Math.round(a.x) !== Math.round(b.x)) {
-        return a.x - b.x;
+      // Y 좌표가 다르면 Y 좌표로 정렬 (더 작은 Y가 위쪽)
+      if (Math.round(a.y) !== Math.round(b.y)) {
+        return a.y - b.y;
       }
-      return a.y - b.y;
+      // Y 좌표가 같으면 X 좌표로 정렬 (더 작은 X가 왼쪽)
+      return a.x - b.x;
     });
 
     await Promise.all(
@@ -100,7 +99,7 @@ function SuperNumberWidget() {
   };
 
   return (
-    <AutoLayout // 기능 1: 크기 조절을 위해 fill-parent 사용
+    <AutoLayout
       name="SuperNumberWidget"
       direction="vertical"
       width="fill-parent"
@@ -113,7 +112,6 @@ function SuperNumberWidget() {
       verticalAlignItems="center"
       horizontalAlignItems="center"
     >
-      {/* --- 숫자 변경 UI --- */}
       <AutoLayout spacing={12} verticalAlignItems="center">
         <Frame hoverStyle={{ opacity: 0.7 }} cornerRadius={8} onClick={() => handleNumberChange(-1)}>
           <Text fontSize={24} width={32} height={32} horizontalAlignText="center" verticalAlignText="center">-</Text>
@@ -126,7 +124,6 @@ function SuperNumberWidget() {
         </Frame>
       </AutoLayout>
       
-      {/* --- 기능 버튼 UI --- */}
       <AutoLayout spacing={8}>
         <Frame
           hoverStyle={{ opacity: 0.7 }}
